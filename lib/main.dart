@@ -123,12 +123,27 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  final int _minimumSpeedValue = 150;
   Future<void> _sendData(int value) async {
+    // start the command by initial command either forward or reverse, it chooses based on the integer direction
+    String command = movementDirecitonInteger == 1 ? 'FORWARD' : 'REVERSE';
+
     // sending data to ESP 32 only when there is a connection
     if (_connection != null) {
-      Uint8List bytes = Uint8List.fromList(utf8.encode(value.toString()));
+      // if the value is either 1 or 2, meainig if the train just start moving assign speed of _minimumSpeedValue
+      if (value == 1 || value == 2) {
+        command += '$_minimumSpeedValue';
+      } // if the value is 3, which is STOP the stop command will be assigned
+      else if (value == 3) {
+        command = 'STOP';
+      } // else the value will be a speed indicator. it will be concatinated after the directoin command
+      else {
+        command += '$value';
+      }
+      Uint8List bytes = Uint8List.fromList(utf8.encode('$command\n'));
       _connection!.output.add(bytes);
       await _connection!.output.allSent;
+      
     }
   }
 
